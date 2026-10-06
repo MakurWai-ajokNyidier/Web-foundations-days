@@ -1,0 +1,15 @@
+QuickNotes is a simple note-taking web application built with HTML, CSS and JavaScript.
+- Add notes
+- Choose a category for each note
+- Personal, Work, and Study categories
+- Display the date and time of each note
+- Delete individual notes
+- Validate empty notes
+- Limit notes to 200 characters
+- Display the total number of notes
+- Search notes as you type
+- Case-insensitive search
+- Save notes using localStorage
+- Load saved notes when the page opens
+- Clear all notes with confirmation
+- Responsive layout for smaller screens
