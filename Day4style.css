@@ -1,0 +1,261 @@
+/* Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Page */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f6f8;
+    color: #222;
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background-color: #176b87;
+    color: white;
+    text-align: center;
+    padding: 30px 20px;
+}
+
+header h1 {
+    margin-bottom: 5px;
+    font-size: 2rem;
+}
+
+header p {
+    font-size: 1rem;
+}
+
+/* Main */
+main {
+    width: 90%;
+    max-width: 700px;
+    margin: 30px auto;
+}
+
+/* Cards */
+.card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+    margin-bottom: 20px;
+}
+
+/* Form */
+#note-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.form-group label,
+.search-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+input,
+select,
+button {
+    font: inherit;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: white;
+}
+
+/* Buttons */
+button {
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+#note-form button {
+    background-color: #176b87;
+    color: white;
+}
+
+#note-form button:hover {
+    background-color: #12566d;
+}
+
+/* Error */
+.error-message {
+    color: #c62828;
+    margin-top: 12px;
+    min-height: 24px;
+    font-weight: bold;
+}
+
+/* Notes header */
+.notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.notes-header h2 {
+    margin-bottom: 0;
+}
+
+.clear-button {
+    background-color: #8b0000;
+    color: white;
+}
+
+.clear-button:hover {
+    background-color: #650000;
+}
+
+/* Search */
+#search-input {
+    margin-bottom: 15px;
+}
+
+#note-count {
+    margin-bottom: 15px;
+    color: #555;
+    font-weight: bold;
+}
+
+/* Notes list */
+#notes-list {
+    list-style: none;
+}
+
+/* Individual note */
+.note-card {
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-left: 5px solid #176b87;
+    border-radius: 7px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.note-text {
+    margin-bottom: 8px;
+    word-wrap: break-word;
+}
+
+.note-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.category-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background-color: #eee;
+    color: #333;
+}
+
+/* Category colours */
+.category-personal {
+    border-left-color: teal;
+}
+
+.category-work {
+    border-left-color: darkred;
+}
+
+.category-study {
+    border-left-color: blue;
+}
+
+/* Delete button */
+.delete-button {
+    background-color: #d32f2f;
+    color: white;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+.delete-button:hover {
+    background-color: #a92323;
+}
+
+/* Empty search message */
+.empty-message {
+    text-align: center;
+    color: #777;
+    padding: 20px 0;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+
+    main {
+        width: 95%;
+        margin: 20px auto;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    #note-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #note-form button {
+        width: 100%;
+    }
+
+    .notes-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .clear-button {
+        width: 100%;
+    }
+
+    .note-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .delete-button {
+        width: 100%;
+    }
+}
