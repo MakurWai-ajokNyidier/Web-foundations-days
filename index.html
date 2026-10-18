@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="QuickNotes REST API client for loading, creating, and deleting notes.">
+  <title>QuickNotes API Client</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="api.js" defer></script>
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <p class="eyebrow">Notes Toolkit</p>
+      <h1>QuickNotes</h1>
+      <p class="intro">A simple client for practising REST API requests.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="notes-heading">
+      <div class="section-heading">
+        <h2 id="notes-heading">Your notes</h2>
+        <button id="load-btn" type="button">Load 10 notes</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">Choose “Load 10 notes” to get started.</p>
+      <ul id="notes-list" aria-label="Notes list"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="add-heading">
+      <h2 id="add-heading">Add a note</h2>
+      <form id="note-form">
+        <div class="field">
+          <label for="title-input">Title <span>(required, maximum 100 characters)</span></label>
+          <input id="title-input" name="title" type="text" maxlength="100" required>
+          <small id="title-count">0 / 100 characters</small>
+        </div>
+        <div class="field">
+          <label for="body-input">Note body</label>
+          <textarea id="body-input" name="body" rows="4" placeholder="Write your note here..."></textarea>
+        </div>
+        <button id="submit-btn" type="submit">Create note</button>
+      </form>
+      <p class="hint">Demo note: JSONPlaceholder simulates POST and DELETE requests; changes are not permanently saved by the service.</p>
+    </section>
+    <footer><p>QuickNotes · Day 8 REST API assignment</p></footer>
+  </main>
+</body>
+</html>
