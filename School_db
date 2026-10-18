@@ -106,4 +106,5 @@ JOIN courses
 WHERE enrolments.student_id = 1
   AND enrolments.course_id = 1;
 
-
+CREATE INDEX idx_enrolments_course_id
+ON enrolments(course_id);
