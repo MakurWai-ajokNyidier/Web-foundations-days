@@ -295,40 +295,42 @@ Failed payments must not result in a completed booking.
 
 ### Architecture Diagram
 
-
-              
-                  
-                  
-            
-                  
-                  
-             
-                  
-                  
-          
-           
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+              CUSTOMERS
+                  |
+                  v
+             WEB / MOBILE
+                  |
+                  v
+             LOAD BALANCER
+                  |
+                  v
+          API GATEWAY / SERVER
+                  |
+        +---------+----------+
+        |         |          |
+        v         v          v
+     EVENT      SEAT       ORDER
+     SERVICE    SERVICE    SERVICE
+        |         |          |
+        v         v          v
+      CACHE    WAITING     PAYMENT
+      (Redis)   QUEUE      SERVICE
+        |         |          |
+        +---------+----------+
+                  |
+                  v
+            POSTGRESQL DB
+                  |
+          +-------+-------+
+          |               |
+          v               v
+      ORDER DATA      SEAT DATA
+          |
+          v
+     TICKET SERVICE
+          |
+          v
+    EMAIL / SMS NOTIFICATION
 
 Component Explanations
 1. Web/Mobile Application
