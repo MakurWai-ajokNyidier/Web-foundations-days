@@ -1,0 +1,436 @@
+ Day8/ folder in the web-foundations-days repository. 
+1. day8/ticketing-design.md
+Create the file and paste the following:
+# TicketHub – System Design Document
+
+## 1. Requirements
+TicketHub is an online ticketing platform that allows users to browse
+events, select seats, purchase tickets, and view their bookings.
+
+## Functional Requirements
+1. Users can register, log in, and manage their accounts.
+2. Users can browse and search for available events.
+3. Users can view event details, prices, and seat availability.
+4. Users can temporarily hold available seats.
+5. Users can pay for reserved seats.
+6. Users can receive booking confirmations.
+7. Users can view and download purchased tickets.
+8. Administrators can create and manage events.
+
+## Non-Functional Requirements
+Speed:
+- Event pages should load within 2 seconds under normal conditions.
+- Seat availability should update quickly.
+- Payment processing should provide timely responses.
+
+Correctness:
+- A seat must never be sold to two different customers.
+- Payments must be accurately recorded.
+- Orders must have correct user and event information.
+
+Fairness:
+- Customers should be served fairly during popular ticket sales.
+- The system should use a waiting queue during heavy traffic.
+- Each customer should have a reasonable opportunity to purchase tickets.
+
+Scalability:
+- The system must support 2 million registered users.
+- It must handle sudden increases in traffic.
+
+Availability and Security:
+- The system should remain available during major ticket sales.
+- User and payment information must be protected.
+- Authentication and authorization must be implemented.
+## 2. Traffic Estimates
+## Normal Traffic
+
+Given:
+- Registered users = 2,000,000
+- Daily visitors = 50,000
+- Pages viewed per visitor = 10
+- Daily ticket sales = 5,000
+
+Calculations:
+
+Total daily page views:
+
+50,000 × 10 = 500,000 page views/day
+
+Average page requests per second:
+
+500,000 ÷ 86,400 = 5.79 requests/second
+
+Average ticket sales per second:
+
+5,000 ÷ 86,400 = 0.058 tickets/second
+
+## Big Sale Traffic
+
+Given:
+- Customers attempting to purchase = 200,000
+- Available seats = 20,000
+- Sale duration = 10 minutes (600 seconds)
+
+Purchase attempts per second:
+
+200,000 ÷ 600 = 333.33 attempts/second
+
+Seat demand ratio:
+
+200,000 ÷ 20,000 = 10 customers per seat
+
+Therefore, demand is ten times greater than available seats.
+
+### Comparison
+
+| Metric | Normal Traffic | Big Sale |
+|---|---:|---:|
+| Registered users | 2,000,000 | 2,000,000 |
+| Visitors/attempts | 50,000/day | 200,000/10 min |
+| Page views | 500,000/day | Concentrated peak |
+| Request rate | 5.79/sec average | 333.33 attempts/sec |
+| Available seats | Depends on event | 20,000 |
+| Ticket demand | 5,000/day | 200,000 attempts |
+
+The big sale creates a significant traffic increase.
+Therefore, TicketHub requires load balancing, caching, a waiting 
+queue, and database transaction management.
+
+## 3. API Design
+
+TicketHub will use RESTful APIs with JSON responses.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/events | Browse all events |
+| GET | /api/events/:id | View event details |
+| GET | /api/events/:id/seats | View available seats |
+| POST | /api/seats/:id/hold | Temporarily reserve a seat |
+| POST | /api/orders | Create an order |
+| POST | /api/payments | Process payment |
+| GET | /api/tickets | View purchased tickets |
+| GET | /api/tickets/:id | View a specific ticket |
+
+### Example: Hold a Seat
+
+POST /api/seats/105/hold
+
+Request:
+
+{
+  "user_id": 25,
+  "event_id": 10
+}
+
+Response:
+{
+  "message": "Seat successfully held",
+  "seat_id": 105,
+  "status": "HELD",
+  "expires_in": 300
+}
+A seat hold expires after five minutes if payment is not completed.
+## Example: Make Payment
+POST /api/payments
+Request:
+{
+  "order_id": 5001,
+  "payment_method": "mobile_money"
+}
+Response:
+{
+  "message": "Payment successful",
+  "order_id": 5001,
+  "status": "PAID"
+}
+Payment requests must use idempotency keys to prevent duplicate
+payment processing.
+
+## 4. Database Design
+
+TicketHub will use PostgreSQL as its relational database.
+
+The system contains five main tables.
+
+## A. Users Table
+
+Stores customer information.
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+## B. Events Table
+
+Stores concert and event information.
+
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY,
+    event_name VARCHAR(150) NOT NULL,
+    venue VARCHAR(150),
+    event_date TIMESTAMP NOT NULL,
+    description TEXT
+);
+
+### C. Seats Table
+
+Stores individual seats and their availability.
+
+CREATE TABLE seats (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id),
+    seat_number VARCHAR(20) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'AVAILABLE',
+    held_by INT REFERENCES users(id),
+    hold_expires_at TIMESTAMP,
+    UNIQUE(event_id, seat_number)
+);
+
+### D. Orders Table
+
+Stores customer orders.
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id),
+    total_amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+## E. Order_Items Table
+
+Connects orders with individual seats.
+
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL REFERENCES orders(id),
+    seat_id INT NOT NULL REFERENCES seats(id),
+    price DECIMAL(10,2) NOT NULL,
+    UNIQUE(seat_id)
+);
+
+## Relationships
+
+1. One user can create many orders (One-to-Many).
+2. One event can contain many seats (One-to-Many).
+3. One order can contain many order items (One-to-Many).
+4. Each seat can belong to only one completed order.
+5. Each order item references one specific seat.
+
+## 5. Preventing Double Booking
+
+Double booking occurs when two customers attempt to purchase
+the same seat simultaneously.
+
+TicketHub will prevent this using database transactions,
+row-level locking, and database constraints.
+
+### Step 1: Start a Transaction
+
+When a customer selects a seat, the system starts a database
+transaction.
+
+### Step 2: Lock the Seat
+
+Use SELECT FOR UPDATE to lock the selected seat.
+
+Example:
+
+BEGIN;
+
+SELECT * FROM seats
+WHERE id = 105
+FOR UPDATE;
+
+### Step 3: Check Availability
+
+The system checks whether the seat is AVAILABLE or whether
+an existing hold has expired.
+
+### Step 4: Update Seat Status
+
+If available, the system updates the seat.
+
+UPDATE seats
+SET status = 'HELD',
+    held_by = 25,
+    hold_expires_at = NOW() + INTERVAL '5 minutes'
+WHERE id = 105;
+
+### Step 5: Commit Transaction
+
+COMMIT;
+
+If the seat is already held or sold, the transaction is
+rejected and the customer receives an unavailable-seat message.
+
+### Additional Protection
+
+The following constraints provide additional protection:
+
+- UNIQUE (event_id, seat_number) prevents duplicate seat records.
+- UNIQUE(seat_id) in order_items prevents a seat from being
+  assigned to multiple orders.
+- Database transactions ensure that operations are completed
+  consistently.
+- Row-level locking prevents simultaneous customers from
+  claiming the same seat.
+- Expired holds are released automatically.
+
+For payment processing, the system must verify that the user
+still owns the active hold before confirming the order.
+
+The seat becomes SOLD only after successful payment.
+Failed payments must not result in a completed booking.
+
+
+
+## 6. System Architecture
+
+### Architecture Diagram
+
+
+              
+                  
+                  
+            
+                  
+                  
+             
+                  
+                  
+          
+           
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Component Explanations
+1. Web/Mobile Application
+Provides the interface for customers to browse events,
+select seats, and purchase tickets.
+2. Load Balancer
+Distributes incoming requests across multiple application
+servers to prevent one server from becoming overloaded.
+3. API Gateway
+Receives requests and directs them to the appropriate services.
+It also handles authentication and request limits.
+4. Event Service
+Manages event information and event searches.
+5. Seat Service
+Manages seat availability, temporary reservations, and
+seat locking.
+6. Order Service
+Creates and manages customer orders.
+7. Payment Service
+Processes payments and verifies successful transactions.
+8. Redis Cache
+Stores frequently requested information such as event details
+and seat availability to reduce database workload.
+9. Waiting Queue
+Controls the number of customers accessing the purchasing
+system during popular ticket sales.
+10. PostgreSQL Database
+Stores users, events, seats, orders, and booking information.
+11. Ticket Service
+Generates electronic tickets after successful payment.
+12. Notification Service
+Sends booking confirmations through email or SMS.
+How the Architecture Handles Big Sales
+During a popular concert sale, 200,000 customers may attempt
+to purchase 20,000 seats within ten minutes.
+The architecture handles this by:
+•	Using a waiting queue to control incoming customers.
+•	Using load balancing to distribute requests.
+•	Using Redis caching to reduce repeated database queries.
+•	Using database transactions to prevent double booking.
+•	Using multiple application servers to support increased traffic.
+•	Using asynchronous notifications to avoid delaying purchases.
+7. System Design Trade-offs
+Trade-off 1: Consistency vs Availability
+TicketHub prioritizes data consistency during seat purchases.
+Although some requests may take longer during heavy traffic,
+the system ensures that one seat cannot be sold to multiple
+customers.
+Trade-off 2: Caching vs Data Accuracy
+Redis caching improves speed and reduces database workload.
+However, cached seat information may become outdated.
+Therefore, event information can be cached, but actual seat
+availability must always be verified against the database
+before a reservation is confirmed.
+Trade-off 3: Fairness vs Speed
+A waiting queue improves fairness by controlling access
+during popular sales.
+However, customers may experience waiting times before
+reaching the purchasing system.
+8. Conclusion
+TicketHub is designed to provide a reliable, scalable, and
+secure online ticketing platform.
+The combination of load balancing, caching, waiting queues,
+database transactions, and relational constraints ensures
+that the platform can handle normal traffic and major concert
+sales while preventing double booking.
+The system prioritizes correctness, speed, fairness, and
+customer satisfaction.
+
+## 2. `day8/reflection.md`
+
+Create the second file and paste the following:
+
+```markdown
+# Day 8 – Course Reflection
+
+The most difficult concept I encountered during this course
+was system design and scalability, particularly understanding
+how distributed systems handle large numbers of simultaneous
+users without compromising performance or data consistency.
+
+I overcame this challenge by studying real-world system
+architectures, practising database design, understanding
+API communication, and learning how components such as
+load balancers, caching systems, and queues work together.
+Practical assignments also helped me understand how to
+translate theoretical concepts into working designs.
+
+Based on the feedback I received on my capstone project,
+I would improve its scalability, user interface, and database
+performance. I would also strengthen its security and error
+handling to make the system more reliable and easier to use.
+Additionally, I would improve testing and documentation to
+ensure that the application meets its requirements.
+
+Next, I plan to learn more about cloud computing, DevOps,
+Docker, Kubernetes, and advanced database management.
+I am also interested in learning more about distributed
+systems, system security, and integrating Artificial
+Intelligence into software applications.
+
+Overall, this course has improved my understanding of
+software development and system design. It has also
+strengthened my ability to approach real-world technical
+problems and develop scalable solutions.
