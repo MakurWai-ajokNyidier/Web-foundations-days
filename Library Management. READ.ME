@@ -1,0 +1,157 @@
+# Library Management System API
+## Project Overview
+The Library Management System API is a backend application
+developed using NestJS, Prisma ORM, TypeScript, and PostgreSQL.
+
+It manages library users, book genres, and book records.
+
+The system supports two user roles:
+- PATRON
+- LIBRARIAN
+
+## Technologies Used
+- Node.js
+- TypeScript
+- NestJS
+- Prisma ORM
+- PostgreSQL
+
+## Project Structure
+api/
+│
+├── prisma/
+│   ├── schema.prisma
+│   └── seed.ts
+│
+├── src/
+│   └── prisma/
+│       └── prisma.service.ts
+│
+├── .env.example
+├── .env
+├── package.json
+└── README.md
+
+## Database Models
+
+### 1. User Model
+The User model stores library user information.
+Fields include:
+- id
+- name
+- email
+- password
+- role
+- createdAt
+- updatedAt
+
+The Role enum defines two user categories:
+
+- PATRON: Regular library users.
+- LIBRARIAN: Users responsible for managing library operations.
+
+### 2. Genre Model
+
+The Genre model stores book categories.
+
+Fields include:
+- id
+- name
+- description
+- createdAt
+- updatedAt
+
+Each genre can contain multiple books.
+
+### 3. Book Model
+The Book model stores information about library books.
+Fields include:
+- id
+- title
+- author
+- isbn
+- description
+- genreId
+- createdAt
+- updatedAt
+
+The genreId field acts as a foreign key referencing the
+Genre model.
+
+## Schema Decisions
+## Why Book References Genre Instead of Embedding It
+The Book model references the Genre model using a foreign
+key called genreId rather than embedding genre information
+directly inside every book record.
+
+This design follows relational database normalization
+principles.
+The decision provides several advantages:
+1. Data Consistency:
+   Each book references an existing genre, ensuring that
+   genre information remains consistent across the database.
+
+2. Reduced Data Duplication:
+   Genre names and descriptions are stored once in the
+   Genre table instead of being repeated in every book record.
+
+3. Easier Maintenance:
+   Updating a genre name or description does not require
+   updating every associated book.
+
+4. Referential Integrity:
+   Prisma uses the @relation attribute to establish the
+   relationship between Book and Genre through genreId.
+
+5. Scalability:
+   New genres and books can be added independently without
+   changing the database structure.
+
+6. Efficient Data Retrieval:
+   Prisma supports relational queries using include and
+   select to retrieve books together with their genres.
+
+### Relationship Structure
+One Genre can have many Books.
+Each Book belongs to one Genre.
+
+The relationship is implemented using:
+- Genre.books: Book[]
+- Book.genreId: Int
+- Book.genre: Genre @relation(fields: [genreId], references: [id])
+
+This represents a One-to-Many relationship.
+## Database Seeding
+
+The seed.ts file inserts:
+- 4 Genres
+- 15 Books
+
+The books are distributed across Fiction, Science,
+Technology, and History genres.
+The seeding process uses Prisma upsert() to prevent
+duplicate records when executed repeatedly.
+
+## Database Configuration
+Create a .env file in the api directory.
+
+Configure your PostgreSQL connection:
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+
+## Installation and Setup
+Install dependencies:
+npm install
+Generate Prisma Client:
+npx prisma generate
+Run database migration:
+npx prisma migrate dev --name init
+Run database seeding:
+npx ts-node prisma/seed.ts
+Open Prisma Studio:
+npx prisma studio
+## Conclusion
+
+The database uses a normalized relational structure
+with clear relationships between users, genres, and books.
+Prisma ORM provides database connectivity, schema
+management, and type-safe database operations.
