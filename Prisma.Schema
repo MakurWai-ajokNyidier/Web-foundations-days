@@ -53,3 +53,174 @@ model Book {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+async function main() {
+
+  console.log('Starting database seeding...');
+
+  // Create Genres
+  const fiction = await prisma.genre.upsert({
+    where: { name: 'Fiction' },
+    update: {},
+    create: {
+      name: 'Fiction',
+      description: 'Fictional stories and novels',
+    },
+  });
+
+  const science = await prisma.genre.upsert({
+    where: { name: 'Science' },
+    update: {},
+    create: {
+      name: 'Science',
+      description: 'Scientific knowledge and discoveries',
+    },
+  });
+
+  const technology = await prisma.genre.upsert({
+    where: { name: 'Technology' },
+    update: {},
+    create: {
+      name: 'Technology',
+      description: 'Computer science and modern technology',
+    },
+  });
+
+  const history = await prisma.genre.upsert({
+    where: { name: 'History' },
+    update: {},
+    create: {
+      name: 'History',
+      description: 'Historical events and civilizations',
+    },
+  });
+
+  console.log('Genres created successfully.');
+
+  // Create Books
+  const books = [
+
+    // Fiction Books (4)
+    {
+      title: 'Things Fall Apart',
+      author: 'Chinua Achebe',
+      isbn: '9780385474542',
+      genreId: fiction.id,
+    },
+    {
+      title: 'The River Between',
+      author: 'Ngugi wa Thiong’o',
+      isbn: '9780435905484',
+      genreId: fiction.id,
+    },
+    {
+      title: 'Half of a Yellow Sun',
+      author: 'Chimamanda Ngozi Adichie',
+      isbn: '9781400095209',
+      genreId: fiction.id,
+    },
+    {
+      title: 'The Great Gatsby',
+      author: 'F. Scott Fitzgerald',
+      isbn: '9780743273565',
+      genreId: fiction.id,
+    },
+
+    // Science Books (4)
+    {
+      title: 'A Brief History of Time',
+      author: 'Stephen Hawking',
+      isbn: '9780553380163',
+      genreId: science.id,
+    },
+    {
+      title: 'The Selfish Gene',
+      author: 'Richard Dawkins',
+      isbn: '9780199291151',
+      genreId: science.id,
+    },
+    {
+      title: 'Cosmos',
+      author: 'Carl Sagan',
+      isbn: '9780345539434',
+      genreId: science.id,
+    },
+    {
+      title: 'The Origin of Species',
+      author: 'Charles Darwin',
+      isbn: '9781509827695',
+      genreId: science.id,
+    },
+
+    // Technology Books (4)
+    {
+      title: 'Clean Code',
+      author: 'Robert C. Martin',
+      isbn: '9780132350884',
+      genreId: technology.id,
+    },
+    {
+      title: 'Introduction to Algorithms',
+      author: 'Thomas H. Cormen',
+      isbn: '9780262046305',
+      genreId: technology.id,
+    },
+    {
+      title: 'The Pragmatic Programmer',
+      author: 'Andrew Hunt',
+      isbn: '9780135957059',
+      genreId: technology.id,
+    },
+    {
+      title: 'Computer Networking: A Top-Down Approach',
+      author: 'James Kurose',
+      isbn: '9780136681557',
+      genreId: technology.id,
+    },
+
+    // History Books (3)
+    {
+      title: 'Guns, Germs, and Steel',
+      author: 'Jared Diamond',
+      isbn: '9780393354324',
+      genreId: history.id,
+    },
+    {
+      title: 'The History of the Ancient World',
+      author: 'Susan Wise Bauer',
+      isbn: '9780393059748',
+      genreId: history.id,
+    },
+    {
+      title: 'Africa: A Biography of the Continent',
+      author: 'John Reader',
+      isbn: '9780679732320',
+      genreId: history.id,
+    },
+  ];
+
+  // Insert Books
+  for (const book of books) {
+    await prisma.book.upsert({
+      where: { isbn: book.isbn },
+      update: {},
+      create: book,
+    });
+  }
+
+  console.log(`${books.length} books inserted successfully.`);
+  console.log('Database seeding completed!');
+}
+
+main()
+  .catch((error) => {
+    console.error('Seeding failed:', error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
