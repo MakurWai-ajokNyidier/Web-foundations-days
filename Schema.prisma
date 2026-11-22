@@ -4,39 +4,74 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("Databases_URL")
 }
 
+// User roles
 enum Role {
   PATRON
   LIBRARIAN
 }
 
+// User Model
 model User {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
+  name      String
   email     String   @unique
   password  String
   role      Role     @default(PATRON)
+
+  reviews   Review[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+// Genre Model
 model Genre {
-  id          String   @id @default(uuid())
+  id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?
+
   books       Book[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
+// Book Model
 model Book {
-  id          String   @id @default(uuid())
+  id          Int      @id @default(autoincrement())
   title       String
   author      String
   isbn        String   @unique
-  totalCopies Int
-  genreId     String
-  genre       Genre    @relation(fields: [genreId], references: [id], onDelete: Restrict)
+  description String?
+  publishedYear Int?
+  totalCopies Int      @default(1)
+
+  // Foreign key relationship
+  genreId     Int
+  genre       Genre    @relation(fields: [genreId], references: [id])
+
+  reviews     Review[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Review Model (Stretch Requirement)
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+
+  bookId    Int
+  userId    Int
+
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, userId])
 }
