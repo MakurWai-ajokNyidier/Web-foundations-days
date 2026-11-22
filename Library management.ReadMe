@@ -1,0 +1,104 @@
+# Library Management System
+
+## Project Overview
+
+The Library Management System is a database-driven application designed to manage library books, genres, users, and book reviews.
+
+The system uses PostgreSQL as its relational database and Prisma ORM for database modeling, migrations, and data management.
+
+## Technologies Used
+
+- PostgreSQL – Relational database.
+- Prisma ORM – Database modeling and management.
+- NestJS – Backend framework.
+- TypeScript – Programming language.
+- Prisma Studio – Database visualization.
+
+## Database Models
+
+The database consists of the following models:
+
+1. **User:** Stores user information, including name, email, password, and role.
+2. **Genre:** Stores book categories such as Technology, Science, Fiction, Business, and Education.
+3. **Book:** Stores book information, including title, author, ISBN, publication year, and available copies.
+4. **Review:** Stores book ratings and comments submitted by users.
+
+## Schema Decisions
+
+The Book model references the Genre model through a foreign key called `genreId` rather than embedding genre information directly inside the Book model.
+
+This design follows relational database normalization principles.
+
+A genre can contain multiple books, while each book belongs to one genre. Therefore, the relationship between Genre and Book is one-to-many.
+
+Using a separate Genre table provides several advantages:
+
+- **Data consistency:** Genre information is stored once and referenced by multiple books.
+- **Reduced redundancy:** The same genre name does not need to be repeated for every book.
+- **Easy maintenance:** Updating a genre name does not require updating every associated book.
+- **Referential integrity:** Foreign key constraints ensure that books reference existing genres.
+- **Scalability:** New genres can be added without changing the Book table structure.
+
+The User model also uses a Role enum with two values: PATRON and LIBRARIAN. This ensures that users are assigned valid roles within the system.
+
+The optional Review model establishes relationships between users and books, allowing users to submit ratings and comments.
+
+## Database Relationships
+
+| Relationship | Description |
+|---|---|
+| Genre - Book | One genre can have many books. |
+| Book - Genre | Each book belongs to one genre. |
+| User - Review | One user can submit multiple reviews. |
+| Book - Review | One book can receive multiple reviews. |
+
+## Database Seeding
+
+The Prisma seed script inserts:
+
+- 5 genres.
+- 20 books distributed across the five genres.
+
+The script uses Prisma `upsert()` to prevent duplicate records when executed multiple times.
+
+## Migration Commands
+
+Validate the schema:
+
+```bash
+npx prisma validate
+```
+
+Generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Create and apply database migration:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+Run database seeding:
+
+```bash
+npx prisma db seed
+```
+
+Open Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+## Prisma vs Document Database
+
+One major difference I noticed when modeling in Prisma compared to a document database is how relationships are handled.
+
+In Prisma with PostgreSQL, related data is organized into separate tables and connected through foreign keys. For example, the Book model references the Genre model through `genreId`.
+
+In a document database such as MongoDB, genre information could instead be embedded directly inside each book document.
+
+Prisma's relational approach provides better referential integrity and reduces data duplication, while document databases provide more flexibility when storing nested and frequently changing data structures.
