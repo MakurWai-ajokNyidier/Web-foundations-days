@@ -1,3 +1,0 @@
-# Database Configuration
-
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
